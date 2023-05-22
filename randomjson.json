@@ -1,0 +1,10 @@
+{"body": {
+    "ships": [
+            {
+                "shipName" : "destoyer",
+                "rotation" : 1, 
+                "startingSquare" : 10
+            }
+        ]
+    }
+}

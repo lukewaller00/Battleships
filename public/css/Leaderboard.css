@@ -1,0 +1,7 @@
+/* CSS for leaderboard table taken from  https://stackoverflow.com/questions/14267781/sorting-html-table-with-javascript*/ 
+table, th, td {
+    border: 1px solid black;
+}
+th {
+    cursor: pointer;
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/CreatePuzzle.css" type="text/css">
+    <link rel="stylesheet" href="/css/GameBoard.css" type="text/css">
+    <title>Multiplayer</title>
+</head>
+<body>
+    <%- include("partials/navbar.ejs",  {user : user }) -%>
+    <div class="container form-container">
+        <div id="gameBoard-container"></div>
+        <div class="container">
+            <div class="row shipArray-container ">
+                <div class="col destroyer-container">
+                    <div id= "0" class = "destroyer" draggable = "true"></div>
+                </div>
+                <div class="col submarine-container">
+                    <div id= "1" class = "submarine" draggable = "true"></div>
+                </div>
+                <div class="col crusier-container">
+                    <div id= "2" class= "crusier" draggable = "true"></div>
+                </div>
+                <div class="col battleship-container">
+                    <div id= "3" class = "battleship" draggable = "true"></div>
+                </div>
+                <div class="col carier-container">
+                    <div id= "4" class = "carier" draggable="true"></div>
+                </div>
+            </div>    
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col text-center">
+                    <button id="rotate" type="button" class="btn btn-primary">Rotate</button>
+                </div>
+                <div class="col text-center">
+                    <button id="randomize" type="button" class="btn btn-primary">Randomize</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col text-center">
+                    <button id="clearPuzzle" type="button" class="btn btn-primary">Clear Puzzle</button>
+                </div>
+            </div> 
+            <div class="col text-center">
+                <button id="searchButton" type="button" class="btn btn-primary">Search!</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <script src="/helpers/MutiplayerScreenHelper.js"></script>
+</body>
+</html>

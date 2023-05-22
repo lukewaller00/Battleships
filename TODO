@@ -1,0 +1,59 @@
+Create way of saving puzzle
+    Create list of starting position, rotation and shipName to build puzzle from
+    Add to a global variable for JSON Object each time the addIndividualShip() is called
+    Use JSON object to fill in req.body to be sent via a press of a button
+
+        Problems with crossOrigin, not sure if because HTTPS was in the URL of POST request
+
+
+    Prevent saving when ships are not in the gameBoard
+
+    
+Create Button to remove ships from gameboard and savedShipArray
+
+Create play Screen With game logic
+    Add number to each ship segement to keep track of how many segements are left
+        Is this neccessary???
+        Acheived without this
+        REMOVED
+    
+Create list Puzzle Screen with all puzzles from the database
+
+When game is complete send a post request to the server with game statistics, this will redirect the player to an end screen page that confirms the game has been added to their account. 
+
+
+Add username to navbar and add log out button to navbar and server
+
+Username button redirects user to their statistics page
+
+Fix Bug when same square is clicked and it resets the statistics
+    prevent a hit from occuring when the square has a class of hit
+
+
+Create redirection after complete game to show added statistics to the account
+
+
+COMPLETE
+--------------------------------------------------------------------------------------------------------
+
+User statistic page
+    Create list of cards of statistics from the users last ten games
+    Display overvall statistics on page
+    Create account screen with statistics
+    Hit Percentage
+    Ships killed in one turn. 
+    Amount of turns to finish a puzzle
+
+Make ships click to select for mobile usage
+
+Add date/time to puzzle creation to allow for sorting  
+
+remove global variable of currentPuzzle on server and use req params to get the puzzle id
+
+
+Redirect user after puzzle is created. 
+
+
+Add pagination to Complete Puzzle List page to get 10 different pages each time 
+    Can be used for puzzle list as well
+

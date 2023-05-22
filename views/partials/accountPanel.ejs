@@ -1,0 +1,30 @@
+<div class="profile-nav col-md-3">
+    <div class="panel">
+        <div class="user-heading round">
+            <a href="#">
+                <img src="https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg" alt="">
+            </a>
+            <h1><%= user.username %></h1>
+            <p><%= user.email %></p>
+        </div>
+
+        <ul class="nav nav-pills nav-stacked">
+            <div class="container">
+                <div class="row">
+                    <li class="active"><a href="/account/<%= user._id %>"> <i class="fa fa-user"></i> Profile</a></li>
+                </div>
+                <div class="row">
+                    <li><a href="/accountPuzzles/<%= user._id %>">Puzzles Complete</a></li>
+                </div>
+                <div class="row">
+                    <li><a href="/accountCreatedPuzzles/<%= user._id %>">Puzzles Created</a></li>
+                </div>
+            </div>
+        </ul>
+    </div>
+</div>
+
+
+    <% //Account Panel Inspiration https://www.bootdey.com/snippets/view/user-profile-bio-graph-and-total-sales#css%>
+
+    

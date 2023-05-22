@@ -1,0 +1,61 @@
+<div class="col-8" id="PaginationCol">
+    <h1><%= type %></h1>
+
+    <ul class="list-group">
+      <% reqResult.currentPageResults.forEach((puzzle) => { %>
+        <% if (type === "Puzzles Created"){ %>
+            <div class="card">
+                <div class="card-body"> 
+                    <div class="row">
+                        <div class="col-md-2">Name: <%= puzzle.puzzleName %></div>
+                        <div class="col-md-2">Size: <%= puzzle.size %></div>
+                        <div class="col-md-2">Difficulty: <%= puzzle.difficulty %></div>
+                        <div class="col-md-2">Times Played: <%= puzzle.timesPlayed %></div>
+                        <div class="col-md-2">User Rating: <%= Math.ceil(parseInt(puzzle.rating)/parseInt(puzzle.ratingsCount)) %>/5</div>
+                        <div class="col-md-1"><a href="/playPuzzle/<%=puzzle._id%>" class="btn btn-primary">Play!</a></div>
+                    </div>
+                </div>
+            </div>
+        <% }else{ %>
+            <div class="card">
+            <div class="card-body">    
+                <div class="row">
+                    <div class="col-md-2">Name: <%= puzzle._id %></div>
+                    <div class="col-md-2">Shots Taken: <%= puzzle.shotsTaken %></div>
+                    <div class="col-md-2">Shots Hit: <%= puzzle.shotsHit %></div>
+                    <div class="col-md-2">Times To Complete: <%= puzzle.timeToComplete %>s</div>
+                    <div class="col-md-2">Turns Taken: <%= puzzle.turnsTaken %></div>
+                    <div class="col-md-2"><a href="/playPuzzle/<%=puzzle._id%>" class="btn btn-primary">Try Again!</a></div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+      <% }) %>
+    </ul>
+    
+    <nav>
+      <ul class="pagination">
+        <% if (reqResult.currentPage === 1) { %>
+          <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+        <% } else { %>
+          <li class="page-item"><a class="page-link" href="?page=<%= reqResult.currentPage - 1 %>">Previous</a></li>
+        <% } %>
+        
+        <% for (let i = 1; i <= reqResult.totalPages; i++) { %>
+          <% if (i <= reqResult.totalPages) { %>
+            <% if (i === reqResult.currentPage) { %>
+              <li class="page-item active"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+            <% } else { %>
+              <li class="page-item"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+            <% } %>
+          <% } %>
+        <% } %>
+    
+        <% if (reqResult.currentPage === reqResult.totalPages) { %>
+          <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+        <% } else { %>
+          <li class="page-item"><a class="page-link" href="?page=<%= reqResult.currentPage + 1 %>">Next</a></li>
+        <% } %>
+      </ul>
+    </nav>    
+  </div>
