@@ -397,9 +397,6 @@ app.post("/multiplayerGame/:gameID", isLoggedIn, (req, res) =>{
         res.status(400).send("Game is full")
     }*/
 
-    console.log("req body")
-    console.log(req.body)
-
 
 
     const user = req.user
@@ -446,12 +443,16 @@ io.on('connection', (socket) => {
                 socket.join(gameID)
                 //send message to all users in room
                 io.to(gameID).emit('bothPlayersConnected')
+                socket.emit('playerNumber', '2')
             }            
             if (Array.from(room).length == 2){
                 //tells the client the game is full if 2 users are in the room
             }
-        }       
-        socket.join(gameID)
+        }else{
+            socket.join(gameID)
+            socket.emit('playerNumber', '1')
+        }      
+        
         console.log('user: ' + socket.id + ' joined room ' + gameID);
     
     })

@@ -65,8 +65,6 @@ function addIndividualShip(ship, rotation, startSquare, shipName, player ){
         const gameBoard = document.querySelector('.gameBoard.player2');
         allSquares = gameBoard.children
     }
-    console.log("all squares")
-    console.log(allSquares)
     //select correct gameboard to add ships to
 
     //set rotation of ship piece
@@ -97,33 +95,18 @@ function addIndividualShip(ship, rotation, startSquare, shipName, player ){
 
     let shipSquareNumnber = 0
     let shipSquares = []
-    console.log("ship length")
-    console.log(shipLength)
-
-    console.log("ship rotation")
-    console.log(rotation)
-    console.log("vertical")
-    console.log(isVertical)
     
     for (let i =0; i < parseInt(shipLength); i++){
-        console.log("addShipSquare")
-        console.log("isVertical")
-        console.log(isVertical)
+        
         if (isVertical === false){
-            console.log("allSquares")
-            console.log(allSquares[Number(startSquare) + i])
             shipSquares.push(allSquares[Number(startSquare) + i])
 
         }
         else{
-            console.log("allSquares")
-            console.log(allSquares[Number(startSquare) + i* boardWidth])
             shipSquares.push(allSquares[Number(startSquare) + i* boardWidth])
         }
     }
     //incriment through the ships occupied squares and mark them as taken
-    console.log(shipName)
-    console.log(shipSquares)
     shipSquares.forEach(square =>{
         square.classList.add(shipSquareNumnber)
         square.classList.add(ship.shipName)
@@ -138,7 +121,6 @@ async function getAndLoadShipInformation(){
         method: 'GET',
     }).then(response => response.json())
     .then(responseData => {
-        console.log(responseData)
         responseData.currentGamePuzzles.forEach(puzzle => {
             let playerNum = 2
             if (responseData.username ===  Object.keys(puzzle)[0]){
@@ -147,16 +129,99 @@ async function getAndLoadShipInformation(){
 
             Object.values(puzzle).forEach(shipList => {
                 shipList.forEach(ship => {
-                    addIndividualShip(ship, ship.rotation, ship.startSquare, ship.shipName, playerNum)
+                    addIndividualShip(ship, ship.rotation, ship.startingSquare, ship.shipName, playerNum)
                 })
             })
         })
 
     })
 }
+let gameOver = false
 
+let currentPlayer = 1 //currentPlayer  is 1 or 2, will be changed by socket
 
+function handleClick(e){
+    if(!gameOver){
 
+        if(currentPlayer === playerNumber){
+            console.log("not your turn")
+        }
+
+        if(e.target.classList.contains('shipHit') || e.target.classList.contains('waterHit')){
+                console.log("dont toucn score")
+        }
+        else{
+            if (e.target.classList.contains('taken')){
+                //check which square of the ship has been hit
+                let shipSquareNumber = null;
+                const classList = e.target.classList
+                //the number of the ship will always be the second entry in the Class List
+                shipSquareNumber = parseInt(classList[1])
+                //check what type of ship is clicked, make visible and add to hitShips array 
+                if (e.target.classList.contains('destroyer')) {
+                    e.target.classList.add('shipHit')
+                    hitShips.destroyer += 1
+                } else if (e.target.classList.contains('submarine')) {
+                    e.target.classList.add('shipHit')
+                    hitShips.submarine += 1       
+                } else if (e.target.classList.contains('crusier')) {
+                    e.target.classList.add('shipHit')
+                    hitShips.crusier += 1         
+                }else if (e.target.classList.contains('battleship')) {
+                    e.target.classList.add('shipHit')
+                    hitShips.battleship += 1         
+                }
+                else{
+                    e.target.classList.add('shipHit')
+                    hitShips.carier += 1         
+                }
+                shotsHit += 1
+                document.getElementById('shotsHit').innerHTML = shotsHit
+                sunkenShips =  checkForSunkenShip(hitShips)
+            }
+            else{
+                e.target.classList.add('waterHit')
+                playerTurns += 1
+            }
+            shotsTaken += 1
+            document.getElementById('shotsTaken').innerHTML = shotsTaken
+            document.getElementById('shotPercentage').innerHTML = (shotsHit /shotsTaken) * 100
+            document.getElementById('playerTurns').innerHTML = playerTurns
+            let gamePercentage = 0
+
+            for( ship in sunkenShips){
+
+                //calculate the percentage added for each ship sunk
+                gamePercentage += 1/Object.values(amountOfShips).reduce((acc, val) => acc + val, 0) * 100
+                //creates an array of the amountOfShips, reduce is used to calculate the total amount of ships
+            }
+            //declare the game to be over if all ships were sunk with the click
+            if (Math.ceil(gamePercentage) === 100){
+                gameOver = true
+                console.log(gameOver)
+                clearInterval(intervalId)
+                puzzleScores = {
+                    shotsTaken: shotsTaken,
+                    shotsHit: shotsHit,
+                    time: parseInt(document.getElementById('timer').innerHTML),
+                    turnsTaken: playerTurns
+                }
+                submitPuzzleScores(puzzleScores)
+                
+            }
+            document.getElementsByClassName("progress-bar").item(0).setAttribute('aria-valuenow', gamePercentage)
+            document.getElementsByClassName("progress-bar").item(0).setAttribute('style', "width: "+ gamePercentage+"%")
+            document.getElementById("gamePercentage").innerHTML = Math.ceil(gamePercentage) + "%"
+        }
+    }
+}
+
+function startGame(){
+    const allSquares = document.querySelectorAll("#player2 .gameBoard div")
+    allSquares.forEach(square => square.addEventListener('click', handleClick))
+}
+
+let playerNumber;
 
 socket.on('gameFull', () => {
 
@@ -167,4 +232,12 @@ socket.on('gameFull', () => {
 socket.on('bothPlayersConnected', async () => {
     createBoard(boardWidth);
     await getAndLoadShipInformation();
+    startGame();
+
 })
+
+socket.on('playerNumber', (number) => {
+    playerNumber = parseInt(number);
+    console.log(playerNumber)
+})
+
