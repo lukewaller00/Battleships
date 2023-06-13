@@ -5,12 +5,14 @@ const gameBoardContainer = document.querySelector('#gameBoard-container')
 const savePuzzleButton = document.querySelector('#savePuzzle')
 const clearPuzzleButton = document.querySelector('#clearPuzzle')
 
-//rotate ships in shipArray 
+//rotate ships in shipArray
 let rotation = 0
 function rotateShips() {
+    console.log(ships)
+
     //vertical rotation = 1
     if (rotation === 0 ){
-        
+
         shipContainer.style.height = '180px'
         Array.from(shipContainer.children).forEach(ship =>{
             ship.style.transform = 'rotate(90deg)'
@@ -18,7 +20,7 @@ function rotateShips() {
         rotation = 1
         console.log(rotation)
     }
-    //horizontal rotation = 0 
+    //horizontal rotation = 0
     else{
         shipContainer.style.height = '70px'
         Array.from(shipContainer.children).forEach(ship =>{
@@ -29,7 +31,7 @@ function rotateShips() {
     }
 }
 
-//if rotateButton is clicked then call rotateShips() 
+//if rotateButton is clicked then call rotateShips()
 rotateButton.addEventListener('click', rotateShips)
 
 
@@ -46,7 +48,7 @@ function createBoard(boardWidth){
     const gameBoard = document.createElement('div')
     gameBoard.classList.add("gameBoard")
     gameBoard.style.backgroundColor = 'aqua'
-    
+
 
     //create each sqaure of the gameBoard
     for(let i = 0; i <= boardWidth*boardWidth -1; i++){
@@ -86,7 +88,7 @@ increaseWidthBtn.addEventListener('click', () => {
     if (boardWidth < 20) { // maximum board width
         boardWidth++;
         gameBoardContainer.innerHTML = ''
-        createBoard(boardWidth);    
+        createBoard(boardWidth);
     }
 });
 
@@ -108,19 +110,20 @@ const crusier = new Ship("crusier", 3)
 const battleship = new Ship("battleship", 4)
 const carier = new Ship("carier", 5)
 
-const ships = [destroyer, submarine, crusier, battleship, carier]
+//saves the ships to be placed onto the board
+let ships = [destroyer, submarine, crusier, battleship, carier]
 
 //lets system know if the ship has been dropped correctly
 let notDropped
 
-// Ship information {shipName, rotation, startingSquare} to be saved 
+// Ship information {shipName, rotation, startingSquare} to be saved
 let saveShipArray = []
 
 //saves a ship to the saveShip Array, priming it to be saved to the DB
 function saveShip(shipName, rotation, startingSquare){
     const ship = {
         shipName : shipName,
-        rotation : rotation, 
+        rotation : rotation,
         startingSquare : startingSquare
     }
     console.log("The current ship is")
@@ -149,7 +152,7 @@ function shipPlacementValidation(allSquares, isVertical, startSquare, ship){
         }
     }
     //prevent ships overlapping rows returns valid as true
-    let validPosition 
+    let validPosition
     //horizontal
     if (!isVertical){
         shipSquares.every((_shipSquare, index) => {
@@ -173,7 +176,11 @@ function shipPlacementValidation(allSquares, isVertical, startSquare, ship){
 function addIndividualShip(ship, rotation, startSquare, dragged){
     //get all <div> inside gameboard
     const allSquares = document.querySelectorAll(".gameBoard div")
-    
+    const shipContainer = document.querySelector(`.${ship.name}-container`);
+
+    console.log(ship);
+    console.log("shipContainer");
+    console.log(shipContainer);
     //set rotation of ship piece
     let isVertical = true
     if (rotation<0.5){
@@ -187,38 +194,46 @@ function addIndividualShip(ship, rotation, startSquare, dragged){
     if (validPosition && sqauresNotTaken){
         //change attributes of squares containing a ship
         shipSquares.forEach(square =>{
-        square.classList.add(ship.name)
-        square.classList.add('taken')
-        square.classList.add(squarePos)
-        squarePos = squarePos + 1   
-    })
-        if(dragged===false){saveShip(ship.name, rotation, Number(shipSquares[0].id))}
+            square.classList.add(ship.name)
+            square.classList.add('taken')
+            square.classList.add(squarePos)
+            squarePos = squarePos + 1
+        })
+        if(dragged===false){
+            saveShip(ship.name, rotation, Number(shipSquares[0].id))
+        }
         //add each addition to the request body for a randomise
     }else{
         if(dragged === false){
-            addIndividualShip(ship, Math.random(), Math.floor(Math.random()*boardWidth*boardWidth), false) 
+            //retry the function to get a valid position to place ship
+                addIndividualShip(ship, Math.random(), Math.floor(Math.random()*boardWidth*boardWidth), false)
+            }
+            else{
+                console.log("move not valid")
+                notDropped = true
+            }
         }
-        else{
-            console.log("move not valid")
-            notDropped = true
-        }
-        }
+        console.log(saveShipArray)
 }
-    
+
 //randomize ship event listener
 randomizeButton.addEventListener('click', ()=>{
-    ships.forEach((ship, index) => {
-        //remove currnet ship from 
-        ships.splice(index, 0)
+    ships.forEach((ship) => {
         addIndividualShip(ship, Math.random(), Math.floor(Math.random()*boardWidth*boardWidth), false)
+        const shipContainer = document.querySelector(`.${ship.name}-container`);
+        if (shipContainer != null){
+            shipContainer.remove()
+        }
         
     });
-    
+    ships = []
+    console.log(ships)
+    console.log("SHIPS ARRAY AFTER PLACEMENT")
 
-  
 })
 
-//drag 
+
+//drag
 Array.from(shipContainer.children).forEach(ship => ship.addEventListener('dragstart', dragStart))
 let draggedShip
 
@@ -242,6 +257,13 @@ function  dropShip(e) {
     if (!notDropped){
         draggedShip.remove()
         saveShip(ship.name, rotation, startSquare)
+        const shipContainer = document.querySelector(`.${ship.name}-container`);
+        shipContainer.remove()
+        //remove first instance of dropped ship from main ships array
+        const index = ships.indexOf(ship);
+        if (index !== -1) {
+            ships.splice(index, 1);
+        }
     }
 }
 
@@ -287,7 +309,7 @@ savePuzzleButton.addEventListener('click',  async ()=>{
    .then(response => console.log(JSON.stringify(response)))
     }})
 
-//clear unwanted puzzle 
+//clear unwanted puzzle
 clearPuzzleButton.addEventListener('click', ()=>{
     const allSquares = document.querySelectorAll(".gameBoard div")
     allSquares.forEach(square => {
@@ -306,7 +328,7 @@ clearPuzzleButton.addEventListener('click', ()=>{
 //difficulty select dropdown
 const dropdownItems = document.querySelectorAll('#difficulty-dropdown-item');
 const puzzleDifficultyField = document.querySelector('.puzzleDifficulty');
-  
+
   dropdownItems.forEach(item => {
     item.addEventListener('click', () => {
       puzzleDifficultyField.value = item.getAttribute('data-difficulty');
@@ -329,25 +351,37 @@ function addShipToContainer(shipType){
     switch (shipType) {
         case "destroyer":
             ship.setAttribute('id', '0')
+            const destroyer = new Ship(shipType, 1)
+            ships.push(destroyer)
             break;
 
         case "submarine":
             ship.setAttribute('id', '1')
+            const submarine = new Ship("submarine", 2)
+            ships.push(submarine)
             break;
         case "crusier":
             ship.setAttribute('id', '2')
+            const crusier = new Ship("crusier", 3)
+            ships.push(crusier)
             break;
         case "battleship":
             ship.setAttribute('id', '3')
+            const battleship = new Ship("battleship", 4)
+            ships.push(battleship)
             break;
         case "carier":
             ship.setAttribute('id', '4')
+            const carier = new Ship("carier", 5)
+            ships.push(carier)
             break;
     }
     ship.setAttribute('draggable', 'true')
     ship.addEventListener('dragstart', dragStart)
     IndividualshipContainer.appendChild(ship);
     shipContainer.appendChild(IndividualshipContainer);
+    //save ship to local ships Array
+
 }
 
 //handle adding a new ship to shipArray-Container

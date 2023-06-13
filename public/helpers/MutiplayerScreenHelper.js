@@ -145,7 +145,9 @@ function shipPlacementValidation(allSquares, isVertical, startSquare, ship){
 function addIndividualShip(ship, rotation, startSquare, dragged){
     //get all <div> inside gameboard
     const allSquares = document.querySelectorAll(".gameBoard div")
-    
+    console.log(ship)
+    console.log("shipContainer")
+    console.log(shipContainer.querySelector(ship.name+ "-container"))
     //set rotation of ship piece
     let isVertical = true
     if (rotation<0.5){

@@ -456,6 +456,22 @@ io.on('connection', (socket) => {
         console.log('user: ' + socket.id + ' joined room ' + gameID);
     
     })
+    socket.on("playerShot", (gameID, squareId, currentPlayer) =>{
+        socket.broadcast.to(gameID).emit('playerShot', squareId, currentPlayer)
+        console.log('player shot')
+    })
+
+    socket.on('turnComplete', (gameID, currentPlayer) =>{
+        if( currentPlayer === 1){
+            console.log('player 1 turn complete')
+            io.to(gameID).emit("turnComplete", 2) //sends the playerNum for the next player's turn
+        }
+        else{
+            console.log('player 2 turn complete')
+            io.to(gameID).emit("turnComplete", 1) //sends the playerNum for the next player's turn
+        }}
+    )
+
     socket.on('disconnect', () => {
       console.log('user disconnected');
     });
