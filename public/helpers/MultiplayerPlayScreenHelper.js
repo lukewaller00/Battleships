@@ -7,31 +7,39 @@ const socket = io('http://localhost:3000');
 const url = 'http://localhost:3000/multiplayerGame/1';
 const parts = url.split('/');
 const gameID = parts[parts.length - 1];
-
 socket.emit('joinGameRoom', gameID)
 const boardWidth = 10
 let loadedBoards = false
 
-let player1HitShips = {
-    carier: 0,
-    battleship: 0,
-    crusier: 0,
-    submarine: 0,
-    destroyer: 0
+
+//this browser's player
+let player1Statistics = {
+    hitShips : {
+        carier: 0,
+        battleship: 0,
+        crusier: 0,
+        submarine: 0,
+        destroyer: 0
+    },
+    sunkenShips : [],
+    shotsTaken : 0 ,
+    shotsHit: 0,
+    playerTurns: 0
 }
 
-let player1SunkenShips = []
-
-let player2HitShips = {
-    carier: 0,
-    battleship: 0,
-    crusier: 0,
-    submarine: 0,
-    destroyer: 0
+let player2Statistics = {
+    hitShips : {
+        carier: 0,
+        battleship: 0,
+        crusier: 0,
+        submarine: 0,
+        destroyer: 0
+    },
+    sunkenShips : [],
+    shotsTaken : 0 ,
+    shotsHit: 0,
+    playerTurns: 0
 }
-
-let player2SunkenShips = []
-
 
 function createBoard(boardWidth){
 
@@ -186,54 +194,50 @@ function handleClick(e){
                 //check what type of ship is clicked, make visible and add to hitShips array 
                 if (e.target.classList.contains('destroyer')) {
                     e.target.classList.add('shipHit')
-                    player1HitShips.destroyer += 1
+                    player1Statistics.hitShips.destroyer += 1
                 } else if (e.target.classList.contains('submarine')) {
                     e.target.classList.add('shipHit')
-                    player1HitShips.submarine += 1       
+                    player1Statistics.hitShips.submarine += 1       
                 } else if (e.target.classList.contains('crusier')) {
                     e.target.classList.add('shipHit')
-                    player1HitShips.crusier += 1         
+                    player1Statistics.hitShips.crusier += 1         
                 }else if (e.target.classList.contains('battleship')) {
                     e.target.classList.add('shipHit')
-                    player1HitShips.battleship += 1         
+                    player1Statistics.hitShips.battleship += 1         
                 }
                 else{
                     e.target.classList.add('shipHit')
-                    player1HitShips.carier += 1         
+                    player1Statistics.hitShips.carier += 1         
                 }
-                shotsHit += 1
-                document.getElementById('shotsHit').innerHTML = shotsHit
-                player1SunkenShips =  checkForSunkenShip(hitShips)
+                player1Statistics.shotsHit += 1
+                document.getElementById('shotsHitP1').innerHTML = player1Statistics.shotsHit
+                player1Statistics.sunkenShips =  checkForSunkenShip(player1Statistics.hitShips)
             }
             //end of a players turn 
             else{
                 e.target.classList.add('waterHit')
-                playerTurns += 1
+                player1Statistics.playerTurns += 1
                 socket.emit('turnComplete', gameID, currentPlayer)
+                console.log("player Statistics")
+                console.log(player1Statistics)
+                console.log(player2Statistics)
             }
-            shotsTaken += 1
-            document.getElementById('shotsTakenP1').innerHTML = shotsTaken
-            document.getElementById('shotPercentageP1').innerHTML = (shotsHit /shotsTaken) * 100
-            document.getElementById('playerTurnsP1').innerHTML = playerTurns
-            let gamePercentage = calculateGamePercentage(player1SunkenShips)
-            //if the gamePercentage is 100, the game is over
-            //declare the game to be over if all ships were sunk with the click
+            player1Statistics.shotsTaken += 1
+            //Update Statistics current browser's player
+            updateStatistics(1)
+            let gamePercentage = calculateGamePercentage(player1Statistics.sunkenShips) * 100
             if (Math.ceil(gamePercentage) === 100){
                 gameOver = true
                 console.log(gameOver)
-                clearInterval(intervalId)
-                puzzleScores = {
-                    shotsTaken: shotsTaken,
-                    shotsHit: shotsHit,
-                    time: parseInt(document.getElementById('timer').innerHTML),
-                    turnsTaken: playerTurns
+                finalScore = {
+                    playerNumber: playerNumber,
+                    shotsTaken : player1Statistics.shotsTaken,
+                    shotsHit : player1Statistics.shotsTaken,
+                    playerTurns : player1Statistics.playerTurns,
+                    winner : true
                 }
-                submitPuzzleScores(puzzleScores)
-                
-            }
-            document.getElementsByClassName("progress-bar").item(0).setAttribute('aria-valuenow', gamePercentage)
-            document.getElementsByClassName("progress-bar").item(0).setAttribute('style', "width: "+ gamePercentage+"%")
-            document.getElementById("gamePercentageP1").innerHTML = Math.ceil(gamePercentage) + "%"
+                console.log(finalScore)
+             }
         }
     }
 }
@@ -243,50 +247,72 @@ function startGame(){
     allSquares.forEach(square => square.addEventListener('click', handleClick))
 }
 
-function updateStatistics(){
+function updateStatistics(player){
+    let progressBar
+    if( player === 1){
+        document.getElementById('shotsTakenP1').innerHTML = player1Statistics.shotsTaken
+        document.getElementById('shotPercentageP1').innerHTML = Math.ceil((player1Statistics.shotsHit /player1Statistics.shotsTaken) * 100)
+        document.getElementById('playerTurnsP1').innerHTML = player1Statistics.playerTurns
 
-}
+        progressBar = document.getElementById("progressBarP1");
+        progressBar.setAttribute('aria-valuenow', (calculateGamePercentage(player1Statistics.sunkenShips) * 100));
+        progressBar.setAttribute('style', 'width: ' + (calculateGamePercentage(player1Statistics.sunkenShips) * 100)+ '%');
+        document.getElementById("gamePercentageP1").innerHTML = Math.ceil((calculateGamePercentage(player1Statistics.sunkenShips) * 100))
 
-function registerShot(squareId, hitShips){
-    console.log("player shot")
-    const squares = player1Gameboard.querySelectorAll('.square')
-    console.log(squareId)
-    console.log(squares[squareId])
-    if (squares[squareId].classList.contains('taken')){
-        //check what type of ship is clicked, make visible and add to hitShips array 
-        if (squares[squareId].classList.contains('destroyer')) {
-            squares[squareId].classList.add('shipHit')
-            hitShips.destroyer += 1
-        } else if (squares[squareId].classList.contains('submarine')) {
-            squares[squareId].classList.add('shipHit')
-            hitShips.submarine += 1       
-        } else if (squares[squareId].classList.contains('crusier')) {
-            squares[squareId].classList.add('shipHit')
-            hitShips.crusier += 1         
-        }
-        else if (squares[squareId].classList.contains('battleship')) {
-            squares[squareId].classList.add('shipHit')
-            hitShips.battleship += 1
-        }
-        else{
-            squares[squareId].classList.add('shipHit')               
-            hitShips.carier += 1
-        }}
-    else{
-        squares[squareId].classList.add('waterHit')
-        socket.emit('turnComplete', gameID, currentPlayer)
-    }
-    shotsHit += 1
-    document.getElementById('shotsHit').innerHTML = shotsHit
-    if (currentPlayer === 1){
-        player1SunkenShips =  checkForSunkenShip(hitShips)
     }
     else{
-        player2SunkenShips =  checkForSunkenShip(hitShips)
+        document.getElementById('shotsTakenP2').innerHTML = player2Statistics.shotsTaken
+        document.getElementById('shotPercentageP2').innerHTML = Math.ceil((player2Statistics.shotsHit /player2Statistics.shotsTaken) * 100)
+        document.getElementById('playerTurnsP2').innerHTML = player2Statistics.playerTurns
+        console.log(calculateGamePercentage(player2Statistics.sunkenShips))
+        progressBar = document.getElementById("progressBarP2");
+        progressBar.setAttribute('aria-valuenow', (calculateGamePercentage(player2Statistics.sunkenShips) * 100));
+        progressBar.setAttribute('style', 'width: ' + (calculateGamePercentage(player2Statistics.sunkenShips) * 100)+ '%');
+        document.getElementById("gamePercentageP2").innerHTML = Math.ceil((calculateGamePercentage(player2Statistics.sunkenShips) * 100)) 
+
     }
 }
+// function registerShot(squareId, hitShips){
+//     console.log("player shot")
+//     const squares = player1Gameboard.querySelectorAll('.square')
+//     console.log(squareId)
+//     console.log(squares[squareId])
+//     if (squares[squareId].classList.contains('taken')){
+//         //check what type of ship is clicked, make visible and add to hitShips array 
+//         if (squares[squareId].classList.contains('destroyer')) {
+//             squares[squareId].classList.add('shipHit')
+//             hitShips.destroyer += 1
+//         } else if (squares[squareId].classList.contains('submarine')) {
+//             squares[squareId].classList.add('shipHit')
+//             hitShips.submarine += 1       
+//         } else if (squares[squareId].classList.contains('crusier')) {
+//             squares[squareId].classList.add('shipHit')
+//             hitShips.crusier += 1         
+//         }
+//         else if (squares[squareId].classList.contains('battleship')) {
+//             squares[squareId].classList.add('shipHit')
+//             hitShips.battleship += 1
+//         }
+//         else{
+//             squares[squareId].classList.add('shipHit')               
+//             hitShips.carier += 1
+//         }}
+//     else{
+//         squares[squareId].classList.add('waterHit')
+//         socket.emit('turnComplete', gameID, currentPlayer)
+//     }
+//     shotsHit += 1
+//     document.getElementById('shotsHit').innerHTML = shotsHit
+//     if (currentPlayer === 1){
+//         sunkenShips =  checkForSunkenShip(hitShips)
+//     }
+//     else{
+//         player2SunkenShips =  checkForSunkenShip(hitShips)
+//     }
+// }
 
 function checkForSunkenShip(hitShips){
+    console.log(hitShips)
     let sunkShips = []
     sunkShips = sunkShips.concat(Array(Math.floor(hitShips.carier/5)).fill("carier"))
     sunkShips = sunkShips.concat(Array(Math.floor(hitShips.battleship/4)).fill("battleship"))
@@ -303,12 +329,12 @@ function calculateGamePercentage(sunkenShips){
     for( ship in sunkenShips){
 
         //calculate the percentage added for each ship sunk
-        gamePercentage += 1/Object.values(amountOfShips).reduce((acc, val) => acc + val, 0) * 100
+        gamePercentage += 1/5
         //creates an array of the amountOfShips, reduce is used to calculate the total amount of ships
     }
     return gamePercentage
 }
-
+//holds the player number and corresponds to turns and usernames passed from server
 let playerNumber;
 
 
@@ -326,6 +352,7 @@ socket.on('bothPlayersConnected', async () => {
 
 socket.on('playerNumber', (number) => {
     playerNumber = parseInt(number);
+    console.log("this player's numner is")
     console.log(playerNumber)
 })
 
@@ -339,26 +366,53 @@ socket.on('playerShot', (squareId, currentPlayer) =>{
         //check what type of ship is clicked, make visible and add to hitShips array 
         if (squares[squareId].classList.contains('destroyer')) {
             squares[squareId].classList.add('shipHit')
-            player2HitShips.destroyer += 1
+            player2Statistics.hitShips.destroyer += 1
         } else if (squares[squareId].classList.contains('submarine')) {
             squares[squareId].classList.add('shipHit')
-            player2HitShips.submarine += 1       
+            player2Statistics.hitShips.submarine += 1       
         } else if (squares[squareId].classList.contains('crusier')) {
             squares[squareId].classList.add('shipHit')
-            player2HitShips.crusier += 1         
+            player2Statistics.hitShips.crusier += 1         
         }
         else if (squares[squareId].classList.contains('battleship')) {
             squares[squareId].classList.add('shipHit')
-            player2HitShips.battleship += 1
+            player2Statistics.hitShips.battleship += 1
         }
         else{
             squares[squareId].classList.add('shipHit')               
-            player2HitShips.carier += 1
-        }}
+            player2Statistics.hitShips.carier += 1
+        }
+        player2Statistics.shotsHit += 1
+        document.getElementById('shotsHitP2').innerHTML = player2Statistics.shotsHit
+        player2Statistics.sunkenShips =  checkForSunkenShip(player2Statistics.hitShips)
+
+    }
     else{
         squares[squareId].classList.add('waterHit')
+        player2Statistics.playerTurns += 1
         socket.emit('turnComplete', gameID, currentPlayer)
+        console.log("player statistics")
+        console.log(player1Statistics)
+        console.log(player2Statistics)
+
     }
+    player2Statistics.shotsTaken += 1
+    updateStatistics(2)
+
+    //check for gameover, send player1Statistics to server, both browsers do this and both user's stats are stored in MongoDB by server
+    let gamePercentage = calculateGamePercentage(player2Statistics.sunkenShips) *100 
+            if (Math.ceil(gamePercentage) === 100){
+                finalScore = {
+                    gameID : gameID,
+                    user: usernames[playerNumber],
+                    shotsTaken : player1Statistics.shotsTaken,
+                    shotsHit : player1Statistics.shotsTaken,
+                    playerTurns : player1Statistics.playerTurns,
+                    winner : false
+                }
+                console.log(finalScore)
+
+            }
     
 })
 
@@ -368,6 +422,20 @@ socket.on('turnComplete', (num) => {
     console.log("current Player")
     console.log(currentPlayer)
 
+})
+
+let usernames = {}
+
+//recieve usernames from server to display
+socket.on('usernames', (usernames)=>{
+    //use player number to put username in correct span
+    if (playerNumber === 1){
+        document.getElementById("player1Name").textContent = usernames[playerNumber]
+        document.getElementById("player2Name").textContent = usernames[2]
+    }else{
+        document.getElementById("player1Name").textContent = usernames[playerNumber]
+        document.getElementById("player2Name").textContent = usernames[1]
+    } 
 })
 
 socket.on()

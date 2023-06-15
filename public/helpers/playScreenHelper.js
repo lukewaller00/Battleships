@@ -257,6 +257,7 @@ function handleClick(e){
             if (Math.ceil(gamePercentage) === 100){
                 gameOver = true
                 console.log(gameOver)
+                //pauses timer
                 clearInterval(intervalId)
                 puzzleScores = {
                     shotsTaken: shotsTaken,

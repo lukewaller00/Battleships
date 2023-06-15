@@ -80,7 +80,7 @@ const crusier = new Ship("crusier", 3)
 const battleship = new Ship("battleship", 4)
 const carier = new Ship("carier", 5)
 
-const ships = [destroyer, submarine, crusier, battleship, carier]
+let ships = [destroyer, submarine, crusier, battleship, carier]
 
 //lets system know if the ship has been dropped correctly
 let notDropped
@@ -145,9 +145,11 @@ function shipPlacementValidation(allSquares, isVertical, startSquare, ship){
 function addIndividualShip(ship, rotation, startSquare, dragged){
     //get all <div> inside gameboard
     const allSquares = document.querySelectorAll(".gameBoard div")
-    console.log(ship)
-    console.log("shipContainer")
-    console.log(shipContainer.querySelector(ship.name+ "-container"))
+    const shipContainer = document.querySelector(`.${ship.name}-container`);
+
+    console.log(ship);
+    console.log("shipContainer");
+    console.log(shipContainer);
     //set rotation of ship piece
     let isVertical = true
     if (rotation<0.5){
@@ -161,35 +163,42 @@ function addIndividualShip(ship, rotation, startSquare, dragged){
     if (validPosition && sqauresNotTaken){
         //change attributes of squares containing a ship
         shipSquares.forEach(square =>{
-        square.classList.add(ship.name)
-        square.classList.add('taken')
-        square.classList.add(squarePos)
-        squarePos = squarePos + 1   
-    })
-        if(dragged===false){saveShip(ship.name, rotation, Number(shipSquares[0].id))}
+            square.classList.add(ship.name)
+            square.classList.add('taken')
+            square.classList.add(squarePos)
+            squarePos = squarePos + 1
+        })
+        if(dragged===false){
+            saveShip(ship.name, rotation, Number(shipSquares[0].id))
+        }
         //add each addition to the request body for a randomise
     }else{
         if(dragged === false){
-            addIndividualShip(ship, Math.random(), Math.floor(Math.random()*boardWidth*boardWidth), false) 
+            //retry the function to get a valid position to place ship
+                addIndividualShip(ship, Math.random(), Math.floor(Math.random()*boardWidth*boardWidth), false)
+            }
+            else{
+                console.log("move not valid")
+                notDropped = true
+            }
         }
-        else{
-            console.log("move not valid")
-            notDropped = true
-        }
-        }
+        console.log(saveShipArray)
 }
     
 //randomize ship event listener
 randomizeButton.addEventListener('click', ()=>{
-    ships.forEach((ship, index) => {
-        //remove currnet ship from 
-        ships.splice(index, 0)
+    ships.forEach((ship) => {
         addIndividualShip(ship, Math.random(), Math.floor(Math.random()*boardWidth*boardWidth), false)
+        const shipContainer = document.querySelector(`.${ship.name}-container`);
+        if (shipContainer != null){
+            shipContainer.remove()
+        }
         
     });
-    
+    ships = []
+    console.log(ships)
+    console.log("SHIPS ARRAY AFTER PLACEMENT")
 
-  
 })
 
 //drag 
@@ -216,6 +225,13 @@ function  dropShip(e) {
     if (!notDropped){
         draggedShip.remove()
         saveShip(ship.name, rotation, startSquare)
+        const shipContainer = document.querySelector(`.${ship.name}-container`);
+        shipContainer.remove()
+        //remove first instance of dropped ship from main ships array
+        const index = ships.indexOf(ship);
+        if (index !== -1) {
+            ships.splice(index, 1);
+        }
     }
 }
 
@@ -244,19 +260,29 @@ function addShipToContainer(shipType){
     switch (shipType) {
         case "destroyer":
             ship.setAttribute('id', '0')
+            const destroyer = new Ship(shipType, 1)
+            ships.push(destroyer)
             break;
 
         case "submarine":
             ship.setAttribute('id', '1')
+            const submarine = new Ship("submarine", 2)
+            ships.push(submarine)
             break;
         case "crusier":
             ship.setAttribute('id', '2')
+            const crusier = new Ship("crusier", 3)
+            ships.push(crusier)
             break;
         case "battleship":
             ship.setAttribute('id', '3')
+            const battleship = new Ship("battleship", 4)
+            ships.push(battleship)
             break;
         case "carier":
             ship.setAttribute('id', '4')
+            const carier = new Ship("carier", 5)
+            ships.push(carier)
             break;
     }
     ship.setAttribute('draggable', 'true')

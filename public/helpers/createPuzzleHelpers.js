@@ -8,8 +8,6 @@ const clearPuzzleButton = document.querySelector('#clearPuzzle')
 //rotate ships in shipArray
 let rotation = 0
 function rotateShips() {
-    console.log(ships)
-
     //vertical rotation = 1
     if (rotation === 0 ){
 

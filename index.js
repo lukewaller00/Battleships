@@ -444,15 +444,23 @@ io.on('connection', (socket) => {
                 //send message to all users in room
                 io.to(gameID).emit('bothPlayersConnected')
                 socket.emit('playerNumber', '2')
+                usernames = {
+                    1:Object.keys(multiplayerGamesInProgress[gameID][0]),
+                    2: Object.keys(multiplayerGamesInProgress[gameID][1])
+                }
+                console.log(usernames)
+                io.to(gameID).emit('usernames', usernames)
             }            
+
             if (Array.from(room).length == 2){
                 //tells the client the game is full if 2 users are in the room
             }
         }else{
             socket.join(gameID)
             socket.emit('playerNumber', '1')
+
+            
         }      
-        
         console.log('user: ' + socket.id + ' joined room ' + gameID);
     
     })
