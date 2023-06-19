@@ -429,6 +429,8 @@ app.get("/multiplayerGamePuzzles/:gameID", isLoggedIn, (req, res) => {
 })
 
 
+let multiplayerGameFinalScores = {}
+
 io.on('connection', (socket) => {
     
 
@@ -479,6 +481,14 @@ io.on('connection', (socket) => {
             io.to(gameID).emit("turnComplete", 1) //sends the playerNum for the next player's turn
         }}
     )
+
+    socket.on("submitScore", (gameID, finalScore, winner) =>{
+        if (winner === true){
+        multiplayerGameFinalScores[gameID].push({w : finalScore})}
+        else{
+            multiplayerGameFinalScores[gameID].push({l : finalScore})
+        }
+    })
 
     socket.on('disconnect', () => {
       console.log('user disconnected');

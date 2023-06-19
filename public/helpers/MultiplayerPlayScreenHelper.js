@@ -234,9 +234,9 @@ function handleClick(e){
                     shotsTaken : player1Statistics.shotsTaken,
                     shotsHit : player1Statistics.shotsTaken,
                     playerTurns : player1Statistics.playerTurns,
-                    winner : true
                 }
                 console.log(finalScore)
+                socket.emit("submitScore", gameID, finalScore, true)
              }
         }
     }
@@ -403,14 +403,14 @@ socket.on('playerShot', (squareId, currentPlayer) =>{
     let gamePercentage = calculateGamePercentage(player2Statistics.sunkenShips) *100 
             if (Math.ceil(gamePercentage) === 100){
                 finalScore = {
-                    gameID : gameID,
                     user: usernames[playerNumber],
                     shotsTaken : player1Statistics.shotsTaken,
                     shotsHit : player1Statistics.shotsTaken,
                     playerTurns : player1Statistics.playerTurns,
-                    winner : false
                 }
                 console.log(finalScore)
+                //send final score to server ("submitScore",gameID, finalScore, winner)
+                socket.emit("submitScore",gameID, finalScore, false)
 
             }
     
