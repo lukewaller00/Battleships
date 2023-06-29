@@ -16,11 +16,6 @@ const gameStatistcsSchema = new mongoose.Schema({
         type: Number,
         min: 0,
         required: true
-    },
-    timeTaken:{
-        type: Number,
-        min: 0,
-        required: true
     }
 
 })
@@ -31,24 +26,18 @@ const multiplayerGameSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    player1:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    player2:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    player1Stats:[gameStatistcsSchema],
-    player2Stats:[gameStatistcsSchema],
     winner:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
-    }
+    },
+    loser:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    winnerStats:[gameStatistcsSchema],
+    loserStats:[gameStatistcsSchema],
 })
-
 
 module.exports = mongoose.model('MultiplayerGame', multiplayerGameSchema)

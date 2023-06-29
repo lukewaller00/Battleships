@@ -4,9 +4,11 @@ const player2Gameboard = document.querySelector('.player2-gameBoard-container');
 
 const socket = io('http://localhost:3000');
 
-const url = 'http://localhost:3000/multiplayerGame/1';
+const url = window.location.href;
 const parts = url.split('/');
 const gameID = parts[parts.length - 1];
+console.log("current gameID")
+console.log(gameID)
 socket.emit('joinGameRoom', gameID)
 const boardWidth = 10
 let loadedBoards = false
@@ -183,6 +185,7 @@ function handleClick(e){
         socket.emit('playerShot', gameID, squareId, currentPlayer)
         if(e.target.classList.contains('shipHit') || e.target.classList.contains('waterHit')){
                 console.log("dont toucn score")
+                return
         }
         else{
             if (e.target.classList.contains('taken')){
@@ -230,7 +233,7 @@ function handleClick(e){
                 gameOver = true
                 console.log(gameOver)
                 finalScore = {
-                    playerNumber: playerNumber,
+                    username : document.getElementById("player1Name").textContent,
                     shotsTaken : player1Statistics.shotsTaken,
                     shotsHit : player1Statistics.shotsTaken,
                     playerTurns : player1Statistics.playerTurns,
@@ -362,6 +365,10 @@ socket.on('playerShot', (squareId, currentPlayer) =>{
     const squares = player1Gameboard.querySelectorAll('.square')
     console.log(squareId)
     console.log(squares[squareId])
+    if(squares[squareId].classList.contains('shipHit') || squares[squareId].classList.contains('waterHit')){
+        console.log("dont toucn score")
+        return
+}
     if (squares[squareId].classList.contains('taken')){
         //check what type of ship is clicked, make visible and add to hitShips array 
         if (squares[squareId].classList.contains('destroyer')) {
@@ -402,8 +409,9 @@ socket.on('playerShot', (squareId, currentPlayer) =>{
     //check for gameover, send player1Statistics to server, both browsers do this and both user's stats are stored in MongoDB by server
     let gamePercentage = calculateGamePercentage(player2Statistics.sunkenShips) *100 
             if (Math.ceil(gamePercentage) === 100){
+                console.log(document.getElementById("player1Name").textContent)
                 finalScore = {
-                    user: usernames[playerNumber],
+                    username : document.getElementById("player1Name").textContent,
                     shotsTaken : player1Statistics.shotsTaken,
                     shotsHit : player1Statistics.shotsTaken,
                     playerTurns : player1Statistics.playerTurns,
@@ -424,7 +432,6 @@ socket.on('turnComplete', (num) => {
 
 })
 
-let usernames = {}
 
 //recieve usernames from server to display
 socket.on('usernames', (usernames)=>{
@@ -437,6 +444,12 @@ socket.on('usernames', (usernames)=>{
         document.getElementById("player2Name").textContent = usernames[1]
     } 
 })
+
+//redirect Players to confirmation screen once game has completed
+socket.on('gameFinished', async(gameID) => {
+    await fetch()
+}
+)
 
 socket.on()
 

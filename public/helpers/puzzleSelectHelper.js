@@ -4,7 +4,7 @@ const puzzleCardContainer = document.querySelector(".puzzleCard-container")
 
 
 async function loadPuzzlesList(){
-    await fetch("http://localhost:3000/puzzleList", {
+    await fetch("/puzzleList", {
         method: 'GET'
     })
     .then(response => {

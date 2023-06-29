@@ -321,7 +321,7 @@ searchGameButton.addEventListener("click", async () => {
     });
     //if a correct gameID is returned send puzzle to be saved and redirect to game lobby
     if (response.ok) {
-        //get gameID and increment to create a new game with +1 gameID
+        //get incremented gameID to create a new game 
         const gameID = await response.text();
         console.log("Latest game ID:", gameID);
         console.log(saveShipArray)

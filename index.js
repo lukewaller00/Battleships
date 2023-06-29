@@ -5,7 +5,6 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const bcrypt = require('bcrypt'); 
 const User = require('./schema/User')
-const loginRouter = require('./routes/login')
 const methodOverride = require('method-override')
 const Puzzle = require('./schema/Puzzle')
 const flash = require('express-flash')
@@ -93,12 +92,15 @@ app.get("/registration", (req, res) =>{
 
 app.post("/registration", async (req, res) =>{
     console.log("registration")
+    console.log(req.body)
     const checkUser = await User.exists({email: req.body.email})
     console.log(checkUser)
-    if (checkUser){
+    const usernameCheck = await User.exists({username: req.body.username})
+    console.log(usernameCheck)
+    if (checkUser && usernameCheck){
         res.redirect("/registration")
     }
-    if(!checkUser){
+    if(!checkUser && !usernameCheck){
         try{
         const hashedPassword = await bcrypt.hash(req.body.password, 10)
         let user = new User({
@@ -366,8 +368,8 @@ app.get("/multiplayer", isLoggedIn, async(req, res) =>{
 
 app.get("/multiplayerLobby", isLoggedIn, async (req, res) => {
     try {
-        //const latestGame = await MultiplayerGame.findOne().sort("-gameID");
-        const latestGame = 1
+        let latestGame = await MultiplayerGame.findOne().sort("-gameID");
+        latestGame = latestGame.gameID + 1
         if (!latestGame) {
             // no game found in the database
             res.status(404).send("No multiplayer game found");
@@ -401,7 +403,7 @@ app.post("/multiplayerGame/:gameID", isLoggedIn, (req, res) =>{
 
     const user = req.user
     req.session.puzzleData = req.body
-    const gameID = 1//req.params.gameID
+    const gameID = parseInt(req.params.gameID)
     const currentUser = user.username
 
     //create list for player puzzles to be pushed to 
@@ -428,12 +430,9 @@ app.get("/multiplayerGamePuzzles/:gameID", isLoggedIn, (req, res) => {
     res.json({currentGamePuzzles, username})
 })
 
-
+//stores the final scores of games submitted by the server by players multiplayerGameFinalScores[gameID]
 let multiplayerGameFinalScores = {}
-
 io.on('connection', (socket) => {
-    
-
 
     console.log('a user connected');
     
@@ -450,7 +449,6 @@ io.on('connection', (socket) => {
                     1:Object.keys(multiplayerGamesInProgress[gameID][0]),
                     2: Object.keys(multiplayerGamesInProgress[gameID][1])
                 }
-                console.log(usernames)
                 io.to(gameID).emit('usernames', usernames)
             }            
 
@@ -482,11 +480,67 @@ io.on('connection', (socket) => {
         }}
     )
 
-    socket.on("submitScore", (gameID, finalScore, winner) =>{
+    socket.on("submitScore", async(gameID, finalScore, winner) =>{
+        if (!multiplayerGameFinalScores[gameID]) {
+            multiplayerGameFinalScores[gameID] = [];
+        }
+        // if (!gameSubmissionStatus[gameID]) {
+        //     gameSubmissionStatus[gameID] = {
+        //         scoresSubmitted: 0
+        //     };
+        // }
+
         if (winner === true){
         multiplayerGameFinalScores[gameID].push({w : finalScore})}
         else{
             multiplayerGameFinalScores[gameID].push({l : finalScore})
+        }
+
+        if(Object.keys(multiplayerGameFinalScores[gameID]).length === 2){
+            console.log(multiplayerGameFinalScores)
+            //submit scores to mongoDB
+            const winnerUser = await User.findOne({username : multiplayerGameFinalScores[gameID][0].w.username }) 
+            const loserUser = await User.findOne({username : multiplayerGameFinalScores[gameID][1].l.username })
+            const player1Stats = {
+                shotsTaken : multiplayerGameFinalScores[gameID][0].w.shotsTaken,
+                shotsHit : multiplayerGameFinalScores[gameID][0].w.shotsHit,
+                turnsTaken : multiplayerGameFinalScores[gameID][0].w.playerTurns
+            }
+            //check for user and update stats in DB
+            if(winnerUser){
+                winnerUser.MPshotsHit += player1Stats.shotsHit
+                winnerUser.MPshotsTaken += player1Stats.shotsTaken
+                winnerUser.MPturnsTaken += player1Stats.turnsTaken
+                winnerUser.MPWins += 1
+            }
+            const player2Stats = {
+                shotsTaken : multiplayerGameFinalScores[gameID][1].l.shotsTaken,
+                shotsHit : multiplayerGameFinalScores[gameID][1].l.shotsHit,
+                turnsTaken : multiplayerGameFinalScores[gameID][1].l.playerTurns
+            }
+            if (loserUser){
+                loserUser.MPshotsHit += player2Stats.shotsHit
+                loserUser.MPshotsTaken += player2Stats.shotsTaken
+                loserUser.MPturnsTaken += player2Stats.turnsTaken
+                loserUser.MPLosses += 1
+            }
+            let game = new MultiplayerGame({
+                 gameID : gameID,
+                 winner : winnerUser,
+                 loser : loserUser,
+                 winnerStats : player1Stats,
+                 loserStats : player2Stats
+             })
+            //Save game to DB and await result in order to add ID to player's MP stats
+            await game.save()
+            loserUser.multiplayerBattles.push(game._id)
+            winnerUser.multiplayerBattles.push(game._id)
+            loserUser.save()
+            winnerUser.save()
+            console.log("game stats saved to DB")
+            
+            io.emit('gameFinished', gameID)
+            multiplayerGameFinalScores[gameID] = []
         }
     })
 
