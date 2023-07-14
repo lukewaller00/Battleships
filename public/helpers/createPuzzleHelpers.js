@@ -125,6 +125,7 @@ function saveShip(shipName, rotation, startingSquare){
         startingSquare : startingSquare
     }
     console.log("The current ship is")
+    console.log(ships)
     saveShipArray.push(ship)
     console.log("The saveShip is ")
     console.log(saveShipArray)
@@ -174,11 +175,9 @@ function shipPlacementValidation(allSquares, isVertical, startSquare, ship){
 function addIndividualShip(ship, rotation, startSquare, dragged){
     //get all <div> inside gameboard
     const allSquares = document.querySelectorAll(".gameBoard div")
-    const shipContainer = document.querySelector(`.${ship.name}-container`);
 
     console.log(ship);
-    console.log("shipContainer");
-    console.log(shipContainer);
+
     //set rotation of ship piece
     let isVertical = true
     if (rotation<0.5){
@@ -218,15 +217,11 @@ function addIndividualShip(ship, rotation, startSquare, dragged){
 randomizeButton.addEventListener('click', ()=>{
     ships.forEach((ship) => {
         addIndividualShip(ship, Math.random(), Math.floor(Math.random()*boardWidth*boardWidth), false)
-        const shipContainer = document.querySelector(`.${ship.name}-container`);
-        if (shipContainer != null){
-            shipContainer.remove()
-        }
-        
+              
     });
+    //clear ship array after random placement
     ships = []
-    console.log(ships)
-    console.log("SHIPS ARRAY AFTER PLACEMENT")
+    
 
 })
 
@@ -246,17 +241,19 @@ function dragOver(e) {
     hightlightSquares(e.target.id, ships[draggedShip.id])
 }
 
+
+  
+
 function  dropShip(e) {
     const startSquare = Number(e.target.id)
-    console.log(draggedShip)
-    const ship = ships[draggedShip.id]
+    const shipsWithName = ships.findIndex(ship => ship.name == draggedShip.classList[0])
+    console.log(shipsWithName)
+    const ship = ships[shipsWithName]
     console.log(ship)
     addIndividualShip(ship, rotation, startSquare, true)
     if (!notDropped){
         draggedShip.remove()
         saveShip(ship.name, rotation, startSquare)
-        const shipContainer = document.querySelector(`.${ship.name}-container`);
-        shipContainer.remove()
         //remove first instance of dropped ship from main ships array
         const index = ships.indexOf(ship);
         if (index !== -1) {

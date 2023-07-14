@@ -68,7 +68,6 @@ function defaultLineGraph(puzzleList){
         }
     }
     lineGraph = new Chart(document.getElementById("statsChart"), lineGraphConfig)
-
 }
 
 
@@ -129,6 +128,7 @@ function getAverageShotPercentage(puzzleList){
     });
     return AverageShotPercentageDataset
 }
+
 
 function getTimeSpentPlaying(puzzleList){
     let TimeSpentPlayingDataset = []

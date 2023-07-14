@@ -189,10 +189,6 @@ function addIndividualShip(ship, rotation, startSquare, dragged){
 randomizeButton.addEventListener('click', ()=>{
     ships.forEach((ship) => {
         addIndividualShip(ship, Math.random(), Math.floor(Math.random()*boardWidth*boardWidth), false)
-        const shipContainer = document.querySelector(`.${ship.name}-container`);
-        if (shipContainer != null){
-            shipContainer.remove()
-        }
         
     });
     ships = []
@@ -218,15 +214,14 @@ function dragOver(e) {
 
 function  dropShip(e) {
     const startSquare = Number(e.target.id)
-    console.log(draggedShip)
-    const ship = ships[draggedShip.id]
+    const shipsWithName = ships.findIndex(ship => ship.name == draggedShip.classList[0])
+    console.log(shipsWithName)
+    const ship = ships[shipsWithName]
     console.log(ship)
     addIndividualShip(ship, rotation, startSquare, true)
     if (!notDropped){
         draggedShip.remove()
         saveShip(ship.name, rotation, startSquare)
-        const shipContainer = document.querySelector(`.${ship.name}-container`);
-        shipContainer.remove()
         //remove first instance of dropped ship from main ships array
         const index = ships.indexOf(ship);
         if (index !== -1) {

@@ -91,16 +91,12 @@ app.get("/registration", (req, res) =>{
 })
 
 app.post("/registration", async (req, res) =>{
-    console.log("registration")
-    console.log(req.body)
     const checkUser = await User.exists({email: req.body.email})
-    console.log(checkUser)
     const usernameCheck = await User.exists({username: req.body.username})
-    console.log(usernameCheck)
     if (checkUser && usernameCheck){
         res.redirect("/registration")
     }
-    if(!checkUser && !usernameCheck){
+    else if(!checkUser && !usernameCheck){
         try{
         const hashedPassword = await bcrypt.hash(req.body.password, 10)
         let user = new User({
@@ -109,14 +105,14 @@ app.post("/registration", async (req, res) =>{
             password: hashedPassword
         })
         user.save();
-        console.log("User Saved")
         res.redirect("/login")
     }
     catch{
         res.redirect("/registration")
-    }
-}
-}
+    }}
+    else{
+        res.redirect("/registration")
+    }}
 )
 
 
@@ -287,7 +283,6 @@ app.get("/accountPuzzles/:id", isLoggedIn, async(req, res)=>{
     res.render('CompletedPuzzlesList.ejs', {reqResult, account})
 })
 
-
 app.get("/accountCreatedPuzzles/:id", isLoggedIn, async(req, res)=>{
     const puzzles = await Puzzle.find({userId: req.params['id']})
     const account = await User.findById(req.params['id'])
@@ -310,7 +305,6 @@ app.get("/accountCreatedPuzzles/:id", isLoggedIn, async(req, res)=>{
     console.log(reqResult)
     res.render('CreatedPuzzleList.ejs', {reqResult, account})
 })
-
 
 
 app.post("/ratePuzzle", isLoggedIn, async (req, res) =>{
@@ -341,7 +335,6 @@ app.get("/leaderboards", isLoggedIn, async (req, res) =>{
     //format user data to be displayed in leaderboards
     let usersData = []
     allUsersArray.forEach(user =>{
-        console.log(parseInt(user.completedPuzzles.length))
         usersData.push({
             username : user.username,
             OverallshotsTaken: user.OverallshotsTaken,
@@ -389,32 +382,14 @@ let player2 = null;
 const multiplayerGamesInProgress = {}
 
 app.post("/multiplayerGame/:gameID", isLoggedIn, (req, res) =>{
-    /**if (player1 == null){
-        player1 = req.body
-    }
-    else if (player2 == null && player1 != null){
-        player2 = req.body
-    }
-    else{
-        res.status(400).send("Game is full")
-    }*/
-
-
-
     const user = req.user
     req.session.puzzleData = req.body
     const gameID = parseInt(req.params.gameID)
     const currentUser = user.username
-
-    //create list for player puzzles to be pushed to 
     if (!multiplayerGamesInProgress[gameID]) {
         multiplayerGamesInProgress[gameID] = [];
     }
-    
     multiplayerGamesInProgress[gameID].push({[currentUser] : req.body})
-    console.log("multiplayerGamesInProgress")
-    console.log(multiplayerGamesInProgress)
-
     res.redirect("/multiplayerGame/" + gameID)
 })  
 
